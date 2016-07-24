@@ -1,7 +1,11 @@
+/*jslint browser: true*/
+/*global queue, d3*/
+
 queue()
 .await(ready);
 
-function ready(error, xml) {
+function ready(error, xml) { // jshint ignore:line
+  "use strict";
 
   var svg = d3.select("svg");
 
@@ -24,17 +28,17 @@ function ready(error, xml) {
     path.transition()
         .duration(7500)
         .attrTween("stroke-dasharray", tweenDash)
-        .each("end", function() { d3.select(this).call(transition); });// infinite loop
+        .each("end", function() { d3.select(this).call(transition); });
   }
 
   function tweenDash() {
     var l = path.node().getTotalLength();
-    var i = d3.interpolateString("0," + l, l + "," + l); // interpolation of stroke-dasharray style attr
+    var i = d3.interpolateString("0," + l, l + "," + l);
     return function(t) {
       var marker = d3.select("#marker");
       var p = path.node().getPointAtLength(t * l);
-      marker.attr("transform", "translate(" + p.x + "," + p.y + ")");//move marker
+      marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
       return i(t);
-    }
+  };
   }
 }
