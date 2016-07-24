@@ -1,10 +1,11 @@
 /*jslint browser: true*/
-/*global queue, L, gdata, d3*/
+/*global queue, L, d3*/
 
 queue()
+.defer(d3.json, "files/map.geojson")
 .await(ready);
 
-function loadGeoJson() {
+function loadGeoJson(mapJson) {
     "use strict";
     var map, gj, ctr;
     map = L.map('map', {
@@ -18,7 +19,7 @@ function loadGeoJson() {
         maxZoom: 15
     }).addTo(map);
 
-    gj = L.geoJson(gdata, {
+    gj = L.geoJson(mapJson, {
         color: "#ff7800",
         weight: 2,
         opacity: 0.45
@@ -34,10 +35,9 @@ function loadGeoJson() {
     });
 }
 
-function ready(error, xml) { // jshint ignore:line
+function ready(error, mapJson) { // jshint ignore:line
   "use strict";
-
-  loadGeoJson();
+  loadGeoJson(mapJson);
 
   var path = d3.select("path#feature-1").call(transition);
   var svg = d3.select(path.node().parentNode.parentNode);
