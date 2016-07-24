@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>D3 Path Animation</title>
+        <meta charset="utf-8" />
+
+        <style type="text/css">
+            path {
+              fill: none;
+              stroke: #000;
+              stroke-width: 1px;
+            }
+
+            circle {
+              fill: red;
+            }
+        </style>
+        <script src="js/d3.js"></script>
+        <script src="js/queue.js"></script>
+    </head>
+
+    <body style="border:0; margin: 0">
+        <div id="pathAnimation">
+            <svg
+               xmlns="http://www.w3.org/2000/svg"
+               width="960"
+               height="500"
+               version="1.1"
+               id="svg">
+              <path
+                 d="m 480,200 c 100,0 0,250 100,200 100,-50 0,-250 100,-300 100,-50 350,100 100,200 -250,100 -350,100 -600,0 -250,-100 0,-250 100,-200 100,50 0,250 100,300 100,50 0,-200 100,-200"
+                 id="wiggle"
+                 class="weirdPath"/>
+            </svg>
+        </div>
+    <script type="text/javascript" src="js/pathFollowAnimation.js"></script>
+    </body>
+</html>
