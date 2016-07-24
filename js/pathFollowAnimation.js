@@ -2,12 +2,12 @@
 /*global queue, L, d3*/
 
 queue()
-.defer(d3.json, "files/map.geojson")
-.await(ready);
+    .defer(d3.json, "files/map.geojson")
+    .await(ready);
 
 function loadGeoJson(mapJson) {
     "use strict";
-    var map, gj, ctr;
+    var map, gj;
     map = L.map('map', {
         center: [1.30009, 103.85],
         zoom: 15
@@ -22,54 +22,136 @@ function loadGeoJson(mapJson) {
     gj = L.geoJson(mapJson, {
         color: "#ff7800",
         weight: 2,
-        opacity: 0.45
+        opacity: 0
     }).addTo(map);
 
-    ctr = 1;
-    gj.eachLayer(function (layer) {
-        // layer.feature is the geojson data
-        // since my sample geojson doesn't contain an id
-        // I'll just generate a sequential id
-        layer.getElement().id = 'feature-' + ctr; // + layer.feature.id;
-        ctr = ctr + 1;
+    gj.eachLayer(function(layer) {
+        new Path(layer);
     });
 }
 
-function ready(error, mapJson) { // jshint ignore:line
-  "use strict";
-  loadGeoJson(mapJson);
+function Path(layer) {
+    "use strict";
+    // I'll place everything into a class
+    // this would make everything easier later on
+    this.layer = layer;
+    this.setId();
+    this.addMarker();
+    Path.paths[this.getElement().id] = this;
+}
 
-  var path = d3.select("path#feature-1").call(transition);
-  var svg = d3.select(path.node().parentNode.parentNode);
-  var startPoint = pathStartPoint(path);
+Path.prototype.getElement = function() {
+    "use strict";
+    return this.layer.getElement();
+};
 
-  var marker = svg.append("circle");
-  marker.attr("r", 7)
-    .attr("id", "marker")
-    .attr("transform", "translate(" + startPoint + ")");
+Path.prototype.setId = function() {
+    "use strict";
+    // layer.feature is the geojson data
+    // since my sample geojson doesn't contain an id
+    // I'll just generate a random id
+    var id = Math.floor(Math.random() * 100000);
+    this.getElement().id = "feature-" + id; // this.layer.feature.id;
+};
 
-  //Get path start point for placing marker
-  function pathStartPoint(path) {
-    var d = path.attr("d"),
-    dsplitted = d.split(" ");
-    return dsplitted[1].replace("L", ",");
-  }
+Path.prototype.getSvg = function() {
+    "use strict";
+    return this.getElement().parentNode.parentNode;
+};
 
-  function transition(path) {
-    path.transition()
-        .duration(7500)
-        .attrTween("stroke-dasharray", tweenDash)
-        .each("end", function() { d3.select(this).call(transition); });
-  }
+Path.prototype.getStartPoint = function() {
+    "use strict";
+    var p = this.getElement().getPointAtLength(0);
+    return p.x + "," + p.y;
+};
 
-  function tweenDash() {
+Path.prototype.addMarker = function() {
+    "use strict";
+    var path = d3.select(this.getElement());
+    var svg = d3.select(this.getSvg());
+
+    var startPoint = this.getStartPoint();
+
+    var marker = svg.append("circle");
+    marker.attr("r", 2)
+        .attr("id", "marker-" + path.attr("id"))
+        .attr("fill", "yellow")
+        .attr("transform", "translate(" + startPoint + ")");
+
+    this.marker = marker;
+};
+
+Path.prototype.tweenDash = function() {
+    "use strict";
+    var path = d3.select(this);
     var l = path.node().getTotalLength();
     var i = d3.interpolateString("0," + l, l + "," + l);
+    var marker = d3.select("#marker-" + path.attr("id"));
+
+    path.attr("stroke-dasharray", i(0));
+    path.attr("stroke-opacity", 0.45);
     return function(t) {
-      var marker = d3.select("#marker");
-      var p = path.node().getPointAtLength(t * l);
-      marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
-      return i(t);
-  };
-  }
+        var p = path.node().getPointAtLength(t * l);
+        marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
+        return i(t);
+    };
+};
+
+Path.prototype.transition = function(endCallback) {
+    "use strict";
+    var path = d3.select(this.getElement());
+    path.transition()
+        .duration(3500)
+        .attrTween("stroke-dasharray", this.tweenDash)
+        .each("end", endCallback || this.noop);
+};
+
+Path.prototype.noop = function() {
+    "use strict";
+    return;
+};
+
+Path.paths = {};
+
+function ready(error, mapJson) { // jshint ignore:line
+    "use strict";
+    loadGeoJson(mapJson);
+
+    function runParallel() {
+        for (var k in Path.paths) {
+            if (!Path.paths.hasOwnProperty(k)) {
+                continue;
+            }
+
+            Path.paths[k].transition();
+        }
+    }
+
+    function runSequential() {
+        // load sequentially, in no particular order
+        var pathOrder = [];
+        for (var k in Path.paths) {
+            if (!Path.paths.hasOwnProperty(k)) {
+                continue;
+            }
+
+            pathOrder.push(k);
+        }
+
+        var ctr = 0;
+
+        function runNext() {
+            if (pathOrder[ctr]) {
+                Path.paths[pathOrder[ctr]].transition(runNext);
+                ++ctr;
+            } else {
+                runParallel();
+            }
+        }
+
+        runNext();
+    }
+
+    runSequential();
+
 }
