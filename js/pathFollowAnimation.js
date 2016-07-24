@@ -1,15 +1,46 @@
 /*jslint browser: true*/
-/*global queue, d3*/
+/*global queue, L, gdata, d3*/
 
 queue()
 .await(ready);
 
+function loadGeoJson() {
+    "use strict";
+    var map, gj, ctr;
+    map = L.map('map', {
+        center: [1.30009, 103.85],
+        zoom: 15
+    });
+
+    L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        subdomains: 'abcd',
+        maxZoom: 15
+    }).addTo(map);
+
+    gj = L.geoJson(gdata, {
+        color: "#ff7800",
+        weight: 2,
+        opacity: 0.45
+    }).addTo(map);
+
+    ctr = 1;
+    gj.eachLayer(function (layer) {
+        // layer.feature is the geojson data
+        // since my sample geojson doesn't contain an id
+        // I'll just generate a sequential id
+        layer.getElement().id = 'feature-' + ctr; // + layer.feature.id;
+        ctr = ctr + 1;
+    });
+}
+
 function ready(error, xml) { // jshint ignore:line
   "use strict";
 
-  var svg = d3.select("svg");
+  loadGeoJson();
 
-  var path = svg.select("path#wiggle").call(transition);
+  var path = d3.select("path#feature-1").call(transition);
+  var svg = d3.select(path.node().parentNode.parentNode);
   var startPoint = pathStartPoint(path);
 
   var marker = svg.append("circle");
@@ -21,7 +52,7 @@ function ready(error, xml) { // jshint ignore:line
   function pathStartPoint(path) {
     var d = path.attr("d"),
     dsplitted = d.split(" ");
-    return dsplitted[1];
+    return dsplitted[1].replace("L", ",");
   }
 
   function transition(path) {
