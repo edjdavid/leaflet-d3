@@ -7,157 +7,157 @@
 /*global queue, L, d3*/
 
 queue()
-    .defer(d3.json, "files/map.geojson")
-    .await(ready);
+  .defer(d3.json, "files/map.geojson")
+  .await(ready);
 
 function loadGeoJson(mapJson) {
-    "use strict";
-    var map, gj;
-    map = L.map('map', {
-        center: [1.30009, 103.85],
-        zoom: 15
-    });
+  "use strict";
+  var map, gj;
+  map = L.map('map', {
+    center: [1.30009, 103.85],
+    zoom: 15
+  });
 
-    L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        subdomains: 'abcd',
-        maxZoom: 15
-    }).addTo(map);
+  L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    subdomains: 'abcd',
+    maxZoom: 15
+  }).addTo(map);
 
-    gj = L.geoJson(mapJson, {
-        color: "#ff7800",
-        weight: 2,
-        opacity: 0
-    }).addTo(map);
+  gj = L.geoJson(mapJson, {
+    color: "#ff7800",
+    weight: 2,
+    opacity: 0
+  }).addTo(map);
 
-    gj.eachLayer(function(layer) {
-        new Path(layer);
-    });
+  gj.eachLayer(function(layer) {
+    new Path(layer);
+  });
 }
 
 function Path(layer) {
-    "use strict";
-    // I'll place everything into a class
-    // this would make everything easier later on
-    this.layer = layer;
-    this.setId();
-    this.addMarker();
-    Path.paths[this.getElement().id] = this;
+  "use strict";
+  // I'll place everything into a class
+  // this would make everything easier later on
+  this.layer = layer;
+  this.setId();
+  this.addMarker();
+  Path.paths[this.getElement().id] = this;
 }
 
 Path.prototype.getElement = function() {
-    "use strict";
-    return this.layer.getElement();
+  "use strict";
+  return this.layer.getElement();
 };
 
 Path.prototype.setId = function() {
-    "use strict";
-    // layer.feature is the geojson data
-    // since my sample geojson doesn't contain an id
-    // I'll just generate a random id
-    var id = Math.floor(Math.random() * 100000);
-    this.getElement().id = "feature-" + id; // this.layer.feature.id;
+  "use strict";
+  // layer.feature is the geojson data
+  // since my sample geojson doesn't contain an id
+  // I'll just generate a random id
+  var id = Math.floor(Math.random() * 100000);
+  this.getElement().id = "feature-" + id; // this.layer.feature.id;
 };
 
 Path.prototype.getSvg = function() {
-    "use strict";
-    return this.getElement().parentNode.parentNode;
+  "use strict";
+  return this.getElement().parentNode.parentNode;
 };
 
 Path.prototype.getStartPoint = function() {
-    "use strict";
-    var p = this.getElement().getPointAtLength(0);
-    return p.x + "," + p.y;
+  "use strict";
+  var p = this.getElement().getPointAtLength(0);
+  return p.x + "," + p.y;
 };
 
 Path.prototype.addMarker = function() {
-    "use strict";
-    // ToDo This marker doesn't scale properly on leaflet zoom
-    var path = d3.select(this.getElement());
-    var svg = d3.select(this.getSvg());
+  "use strict";
+  // ToDo This marker doesn't scale properly on leaflet zoom
+  var path = d3.select(this.getElement());
+  var svg = d3.select(this.getSvg());
 
-    var startPoint = this.getStartPoint();
+  var startPoint = this.getStartPoint();
 
-    var marker = svg.append("circle");
-    marker.attr("r", 2)
-        .attr("id", "marker-" + path.attr("id"))
-        .attr("fill", "yellow")
-        .attr("transform", "translate(" + startPoint + ")");
+  var marker = svg.append("circle");
+  marker.attr("r", 2)
+    .attr("id", "marker-" + path.attr("id"))
+    .attr("fill", "yellow")
+    .attr("transform", "translate(" + startPoint + ")");
 
-    this.marker = marker;
+  this.marker = marker;
 };
 
 Path.prototype.tweenDash = function() {
-    "use strict";
-    var path = d3.select(this);
-    var l = path.node().getTotalLength();
-    var i = d3.interpolateString("0," + l, l + "," + l);
-    var marker = d3.select("#marker-" + path.attr("id"));
+  "use strict";
+  var path = d3.select(this);
+  var l = path.node().getTotalLength();
+  var i = d3.interpolateString("0," + l, l + "," + l);
+  var marker = d3.select("#marker-" + path.attr("id"));
 
-    path.attr("stroke-dasharray", i(0));
-    path.attr("stroke-opacity", 0.45);
-    return function(t) {
-        var p = path.node().getPointAtLength(t * l);
-        marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
-        return i(t);
-    };
+  path.attr("stroke-dasharray", i(0));
+  path.attr("stroke-opacity", 0.45);
+  return function(t) {
+    var p = path.node().getPointAtLength(t * l);
+    marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
+    return i(t);
+  };
 };
 
 Path.prototype.transition = function(endCallback) {
-    "use strict";
-    var path = d3.select(this.getElement());
-    path.transition()
-        .duration(3500)
-        .attrTween("stroke-dasharray", this.tweenDash)
-        .each("end", endCallback || this.noop);
+  "use strict";
+  var path = d3.select(this.getElement());
+  path.transition()
+    .duration(3500)
+    .attrTween("stroke-dasharray", this.tweenDash)
+    .each("end", endCallback || this.noop);
 };
 
 Path.prototype.noop = function() {
-    "use strict";
-    return;
+  "use strict";
+  return;
 };
 
 Path.paths = {};
 
 function ready(error, mapJson) { // jshint ignore:line
-    "use strict";
-    loadGeoJson(mapJson);
+  "use strict";
+  loadGeoJson(mapJson);
 
-    function runParallel() {
-        for (var k in Path.paths) {
-            if (!Path.paths.hasOwnProperty(k)) {
-                continue;
-            }
+  function runParallel() {
+    for (var k in Path.paths) {
+      if (!Path.paths.hasOwnProperty(k)) {
+        continue;
+      }
 
-            Path.paths[k].transition();
-        }
+      Path.paths[k].transition();
+    }
+  }
+
+  function runSequential() {
+    // load sequentially, in no particular order
+    var pathOrder = [];
+    for (var k in Path.paths) {
+      if (!Path.paths.hasOwnProperty(k)) {
+        continue;
+      }
+
+      pathOrder.push(k);
     }
 
-    function runSequential() {
-        // load sequentially, in no particular order
-        var pathOrder = [];
-        for (var k in Path.paths) {
-            if (!Path.paths.hasOwnProperty(k)) {
-                continue;
-            }
+    var ctr = 0;
 
-            pathOrder.push(k);
-        }
-
-        var ctr = 0;
-
-        function runNext() {
-            if (pathOrder[ctr]) {
-                Path.paths[pathOrder[ctr]].transition(runNext);
-                ++ctr;
-            } else {
-                runParallel();
-            }
-        }
-
-        runNext();
+    function runNext() {
+      if (pathOrder[ctr]) {
+        Path.paths[pathOrder[ctr]].transition(runNext);
+        ++ctr;
+      } else {
+        runParallel();
+      }
     }
 
-    runSequential();
+    runNext();
+  }
+
+  runSequential();
 
 }
