@@ -35,7 +35,7 @@ function loadGeoJson(mapJson) {
   });
 }
 
-function Path(layer) {
+function Path(layer, t) {
   "use strict";
   // I'll place everything into a class
   // this would make everything easier later on
@@ -43,6 +43,9 @@ function Path(layer) {
   this.setId();
   this.addMarker();
   Path.paths[this.getElement().id] = this;
+  this.startTime = t || 0;
+  this.simTime = 60; // 60 mins
+  this.animDone = false;
 }
 
 Path.prototype.getElement = function() {
@@ -112,12 +115,53 @@ Path.prototype.transition = function(endCallback) {
     .each("end", endCallback || this.noop);
 };
 
+Path.prototype.animate = function(t) {
+  "use strict";
+  var relTime = t - this.startTime;
+  if (relTime < 0) {
+    return;
+  }
+  var path = this.getElement();
+  var length = path.getTotalLength();
+  var d = 1.0 * (length / this.simTime) * (relTime / Path.config.time);
+  if (d > length) {
+    this.animDone = true;
+  }
+  d3.select(path).attr("stroke-opacity", 0.45)
+    .attr("stroke-dasharray", d + "," + length);
+};
+
 Path.prototype.noop = function() {
   "use strict";
   return;
 };
 
 Path.paths = {};
+Path.config = {
+  "time": 100.0 / 1.0 // 100 ms real time = 1 min sim time
+};
+
+Path.animateAll = function() {
+  "use strict";
+  d3.timer(Path.timerCallback);
+};
+
+Path.timerCallback = function(t) {
+  "use strict";
+  for (var p in Path.paths) {
+    if (!Path.paths.hasOwnProperty(p)) {
+      continue;
+    }
+
+    if (!Path.paths[p].animDone) {
+      Path.paths[p].animate(t);
+    }
+  }
+
+  if (t > 10000) {
+    return true; // this would stop the timer
+  }
+};
 
 function ready(error, mapJson) { // jshint ignore:line
   "use strict";
@@ -128,8 +172,6 @@ function ready(error, mapJson) { // jshint ignore:line
       if (!Path.paths.hasOwnProperty(k)) {
         continue;
       }
-
-      Path.paths[k].transition();
     }
   }
 
@@ -154,10 +196,9 @@ function ready(error, mapJson) { // jshint ignore:line
         runParallel();
       }
     }
-
     runNext();
   }
+  // runSequential();
 
-  runSequential();
-
+  Path.animateAll();
 }
