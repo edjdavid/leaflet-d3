@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2016 Eduardo David Jr.
+ * Licensed under the MIT License. See LICENSE file in the project root for full license information.
+ */
+
 /*jslint browser: true*/
 /*global queue, L, d3*/
 
@@ -67,6 +72,7 @@ Path.prototype.getStartPoint = function() {
 
 Path.prototype.addMarker = function() {
     "use strict";
+    // ToDo This marker doesn't scale properly on leaflet zoom
     var path = d3.select(this.getElement());
     var svg = d3.select(this.getSvg());
 
