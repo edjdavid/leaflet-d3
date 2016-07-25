@@ -35,16 +35,19 @@ function loadGeoJson(mapJson) {
   });
 }
 
-function Path(layer, t) {
+function Path(layer, t, simTime) {
   "use strict";
-  // I'll place everything into a class
-  // this would make everything easier later on
+  // t: time delay in milliseconds (e.g. to start animating a path after
+  //    10 mins of sim time, t = 10 * Path.config.time)
+  // simTime: no of simulation minutes that this path animates
+  // see Path.config.time
+
   this.layer = layer;
   this.setId();
   this.addMarker();
   Path.paths[this.getElement().id] = this;
-  this.startTime = t || 0;
-  this.simTime = 60; // 60 mins
+  this.startTime = t || 0; // start animation on Path.config.startTime
+  this.simTime = simTime || 60; // 60 mins
   this.animDone = false;
 }
 
@@ -129,6 +132,9 @@ Path.prototype.animate = function(t) {
   }
   d3.select(path).attr("stroke-opacity", 0.45)
     .attr("stroke-dasharray", d + "," + length);
+
+  var p = path.getPointAtLength(d);
+  this.marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
 };
 
 Path.prototype.noop = function() {
@@ -138,7 +144,18 @@ Path.prototype.noop = function() {
 
 Path.paths = {};
 Path.config = {
-  "time": 100.0 / 1.0 // 100 ms real time = 1 min sim time
+  "time": 100.0 / 1.0, // 100 ms real time = 1 min sim time
+  "startTime": (new Date()).getTime()
+};
+
+Path.displayTime = function(t) {
+  "use strict";
+  var rt = t / Path.config.time * 60000;
+  var dt = new Date(rt + Path.config.startTime);
+
+  // FIXME this is an ugly formatter
+  d3.select("#date").text(dt.getFullYear() + "/" + (dt.getMonth() + 1) +
+    "/" + dt.getDate() + " " + dt.getHours() + ":" + dt.getMinutes());
 };
 
 Path.animateAll = function() {
@@ -157,6 +174,8 @@ Path.timerCallback = function(t) {
       Path.paths[p].animate(t);
     }
   }
+
+  Path.displayTime(t);
 
   if (t > 10000) {
     return true; // this would stop the timer

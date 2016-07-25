@@ -5,6 +5,27 @@
         <meta charset="utf-8" />
 
         <style type="text/css">
+            #date {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 200px;
+                height: 20px;
+                background-color: #555;
+                color: #fff;
+                text-align: right;
+            }
+
+            #map {
+                height: 800px;
+                width: 1100px;
+            }
+
+            body {
+                border: 0;
+                margin: 0;
+            }
+
             circle {
               fill: red;
             }
@@ -17,7 +38,8 @@
     </head>
 
     <body style="border:0; margin: 0">
-        <div id="map" style="width:1100px; height:800px;"></div>
+        <div id="date">----</div>
+        <div id="map"></div>
         <script type="text/javascript" src="js/pathFollowAnimation.js"></script>
     </body>
 </html>
