@@ -2,7 +2,10 @@
     "type": "FeatureCollection",
     "features": [{
         "type": "Feature",
-        "properties": {},
+        "properties": {
+            "startTime": "2016-01-01T12:40:00",
+            "duration": 3600
+        },
         "geometry": {
             "type": "LineString",
             "coordinates": [
@@ -29,7 +32,10 @@
         }
     }, {
         "type": "Feature",
-        "properties": {},
+        "properties": {
+            "startTime": "2016-01-01T12:20:00",
+            "duration": 1800
+        },
         "geometry": {
             "type": "LineString",
             "coordinates": [
@@ -50,7 +56,10 @@
         }
     }, {
         "type": "Feature",
-        "properties": {},
+        "properties": {
+            "startTime": "2016-01-01T12:00:00",
+            "duration": 1200
+        },
         "geometry": {
             "type": "LineString",
             "coordinates": [
