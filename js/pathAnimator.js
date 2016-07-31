@@ -8,7 +8,7 @@
 
 function Path(layer, delay, simTime) {
   "use strict";
-  // t: time delay in milliseconds (e.g. to start animating a path after
+  // delay: time delay in milliseconds (e.g. to start animating a path after
   //    1 unit of sim time, t = 1 * Path.config.time * Path.config.simStep)
   // simTime: no of simulation units that this path animates
   // see Path.config.time
@@ -19,6 +19,7 @@ function Path(layer, delay, simTime) {
   Path.paths[this.getElement().id] = this;
   this.startTime = delay || 0; // start animation on Path.config.startTime
   this.simTime = simTime || 3600 / Path.config.simStep; // 60 mins in default
+  this.pathLoc = 0.0;
   this.animDone = false;
 }
 
@@ -49,7 +50,6 @@ Path.prototype.getStartPoint = function() {
 
 Path.prototype.addMarker = function() {
   "use strict";
-  // ToDo This marker doesn't scale properly on leaflet zoom
   var path = d3.select(this.getElement());
   var svg = d3.select(this.getSvg());
 
@@ -58,8 +58,8 @@ Path.prototype.addMarker = function() {
   var marker = svg.append("circle");
   marker.attr("r", 2)
     .attr("id", "marker-" + path.attr("id"))
-    .attr("fill", "yellow")
-    .attr("transform", "translate(" + startPoint + ")");
+    .attr("transform", "translate(" + startPoint + ")")
+    .attr("class", "path-marker");
 
   this.marker = marker;
 };
@@ -79,8 +79,26 @@ Path.prototype.animate = function(t) {
   d3.select(path).attr("stroke-opacity", 0.45)
     .attr("stroke-dasharray", d + "," + length);
 
+  this.pathLoc = d / parseFloat(length);
   var p = path.getPointAtLength(d);
   this.marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
+};
+
+Path.prototype.redraw = function() {
+  "use strict";
+  var path = this.getElement();
+  var l = path.getTotalLength();
+  var d = l * this.pathLoc;
+  if (this.pathLoc > 0) {
+    d3.select(path).attr("stroke-dasharray", d + "," + l);
+  }
+  var p = path.getPointAtLength(d);
+  this.marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
+};
+
+Path.prototype.onZoomEnd = function() {
+  "use strict";
+  this.redraw();
 };
 
 Path.prototype.noop = function() {
@@ -91,6 +109,17 @@ Path.prototype.noop = function() {
 Path.animateAll = function() {
   "use strict";
   d3.timer(Path.config.timerCallback);
+};
+
+Path.eachPath = function(f) {
+  "use strict";
+  for (var p in Path.paths) {
+    if (!Path.paths.hasOwnProperty(p)) {
+      continue;
+    }
+
+    f(Path.paths[p]);
+  }
 };
 
 Path.paths = {};
@@ -110,15 +139,11 @@ Path.config = {
   },
   timerCallback: function(t) {
     "use strict";
-    for (var p in Path.paths) {
-      if (!Path.paths.hasOwnProperty(p)) {
-        continue;
+    Path.eachPath(function(p) {
+      if (!p.animDone) {
+        p.animate(t);
       }
-
-      if (!Path.paths[p].animDone) {
-        Path.paths[p].animate(t);
-      }
-    }
+    });
 
     Path.config.displayTime(t);
 

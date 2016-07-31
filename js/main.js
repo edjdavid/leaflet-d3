@@ -39,13 +39,24 @@ function loadGeoJson(mapJson) {
 
     new Path(layer, delay, runTime);
   });
+
+  // `zoomend` event doesn't wait until the paths are resized
+  map.on("moveend", function() {
+    Path.eachPath(function(p) {
+      p.onZoomEnd();
+    });
+  });
 }
 
-function ready(error, mapJson) { // jshint ignore:line
+function ready(error, mapJson) {
   "use strict";
+  if (error) {
+    console.log(error);
+  }
   // let's use a different start time
   Path.config.startTime = (new Date('2016-01-01T12:00:00')).getTime();
   Path.config.simStep = 30;
+  Path.config.runTime = 15000;
   loadGeoJson(mapJson);
 
   Path.animateAll();
