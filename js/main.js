@@ -46,6 +46,8 @@ function loadGeoJson(mapJson) {
       p.onZoomEnd();
     });
   });
+
+  return map;
 }
 
 function ready(error, mapJson) {
@@ -56,8 +58,34 @@ function ready(error, mapJson) {
   // let's use a different start time
   Path.config.startTime = (new Date('2016-01-01T12:00:00')).getTime();
   Path.config.simStep = 30;
-  Path.config.runTime = 15000;
-  loadGeoJson(mapJson);
+  Path.config.runTime = 20000;
+  var map = loadGeoJson(mapJson);
 
+  var pathIds = [];
+  for (var k in Path.paths) {
+    if (!Path.paths.hasOwnProperty(k)) {
+      continue;
+    }
+    pathIds.push(k);
+  }
+
+  var followIdx = 2;
+
+  var followPath = function() {
+    var path = Path.paths[pathIds[followIdx]];
+    var elem = path.getElement();
+    var length = elem.getTotalLength();
+    var p = elem.getPointAtLength(length * path.pathLoc);
+    var latlng = map.layerPointToLatLng(L.point(p.x, p.y));
+    map.panTo(latlng);
+
+    if (path.animDone && followIdx > 0) {
+      followIdx -= 1;
+    }
+  };
+
+  // just comment the next line if we don't want the map following
+  // the path movement
+  Path.config.animationEnd = followPath;
   Path.animateAll();
 }

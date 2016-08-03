@@ -84,7 +84,7 @@ Path.prototype.animate = function(t) {
   this.marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
 };
 
-Path.prototype.redraw = function() {
+Path.prototype.reposition = function() {
   "use strict";
   var path = this.getElement();
   var l = path.getTotalLength();
@@ -98,7 +98,7 @@ Path.prototype.redraw = function() {
 
 Path.prototype.onZoomEnd = function() {
   "use strict";
-  this.redraw();
+  this.reposition();
 };
 
 Path.prototype.noop = function() {
@@ -137,6 +137,10 @@ Path.config = {
     d3.select("#date").text(dt.getFullYear() + "/" + (dt.getMonth() + 1) +
       "/" + dt.getDate() + " " + dt.getHours() + ":" + dt.getMinutes());
   },
+  animationEnd: function() {
+    "use strict";
+    return;
+  },
   timerCallback: function(t) {
     "use strict";
     Path.eachPath(function(p) {
@@ -146,6 +150,7 @@ Path.config = {
     });
 
     Path.config.displayTime(t);
+    Path.config.animationEnd();
 
     if (t > Path.config.runTime) {
       return true; // this would stop the timer
