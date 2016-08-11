@@ -59,6 +59,18 @@ function ready(error, mapJson) {
   Path.config.startTime = (new Date('2016-01-01T12:00:00')).getTime();
   Path.config.simStep = 30;
   Path.config.runTime = 20000;
+
+  // Let's display the id of the currently animating path
+  Path.prototype.onAnimationStart = function() {
+    // `this` inside the function = path instance
+    var msg = d3.select("#message");
+    msg.append("p").text(this.getElement().id + ": Starting");
+  };
+
+  Path.prototype.onAnimationEnd = function() {
+    var msg = d3.select("#message");
+    msg.append("p").text(this.getElement().id + ": End");
+  };
   var map = loadGeoJson(mapJson);
 
   var pathIds = [];

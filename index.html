@@ -1,53 +1,65 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Leaflet/D3 Path Animation</title>
-        <meta charset="utf-8" />
 
-        <style type="text/css">
-            html {
-                height: 100%;
-            }
+<head>
+  <title>Leaflet/D3 Path Animation</title>
+  <meta charset="utf-8" />
 
-            body {
-                border: 0;
-                margin: 0;
-                height: 100%;
-                width: 100%;
-            }
+  <style type="text/css">
+  html {
+    height: 100%;
+  }
 
-            #map {
-                height: 100%;
-                width: 100%;
-            }
+  body {
+    border: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
 
-            #date {
-                position: fixed;
-                top: 0;
-                right: 0;
-                width: 200px;
-                height: 20px;
-                background-color: #555;
-                color: #fff;
-                text-align: right;
-                z-index: 999;
-            }
+  #map {
+    height: 100%;
+    width: 100%;
+  }
 
-            circle.path-marker {
-                fill: red;
-            }
-        </style>
-        <link rel="stylesheet" href="css/leaflet.css" />
+  #date {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 200px;
+    height: 20px;
+    text-align: right;
+  }
 
-        <script src="js/leaflet.js"></script>
-        <script src="js/d3.js"></script>
-        <script src="js/queue.js"></script>
-    </head>
+  #message {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+  }
 
-    <body>
-        <div id="map"></div>
-        <div id="date">----</div>
-        <script type="text/javascript" src="js/pathAnimator.js"></script>
-        <script type="text/javascript" src="js/main.js"></script>
-    </body>
+  .message {
+    z-index: 999;
+    background-color: #555;
+    color: #fff;
+  }
+
+  circle.path-marker {
+    fill: red;
+  }
+  </style>
+  <link rel="stylesheet" href="css/leaflet.css" />
+
+  <script src="js/leaflet.js"></script>
+  <script src="js/d3.js"></script>
+  <script src="js/queue.js"></script>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="date" class="message">----</div>
+  <div id="message" class="message"></div>
+  <script type="text/javascript" src="js/pathAnimator.js"></script>
+  <script type="text/javascript" src="js/main.js"></script>
+</body>
+
 </html>

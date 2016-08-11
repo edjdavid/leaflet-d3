@@ -18,9 +18,9 @@ function Path(layer, delay, simTime) {
   this.addMarker();
   Path.paths[this.getElement().id] = this;
   this.startTime = delay || 0; // start animation on Path.config.startTime
-  this.simTime = simTime || 3600 / Path.config.simStep; // 60 mins in default
+  this.simTime = simTime || 3600 / Path.config.simStep;
   this.pathLoc = 0.0;
-  this.animDone = false;
+  this.animDone = null;
 }
 
 Path.prototype.getElement = function() {
@@ -64,17 +64,30 @@ Path.prototype.addMarker = function() {
   this.marker = marker;
 };
 
+Path.prototype.noop = function() {
+  "use strict";
+  return;
+};
+
+Path.prototype.onAnimationStart = Path.prototype.noop;
+Path.prototype.onAnimationEnd = Path.prototype.noop;
+
 Path.prototype.animate = function(t) {
   "use strict";
   var relTime = t - this.startTime;
   if (relTime < 0) {
     return;
+  } else if (this.animDone === null) {
+    this.onAnimationStart();
+    this.animDone = false;
   }
   var path = this.getElement();
   var length = path.getTotalLength();
   var d = 1.0 * (length / this.simTime) * (relTime / Path.config.time);
   if (d > length) {
+    this.onAnimationEnd();
     this.animDone = true;
+    this.pathLoc = 1.0;
   }
   d3.select(path).attr("stroke-opacity", 0.45)
     .attr("stroke-dasharray", d + "," + length);
@@ -99,11 +112,6 @@ Path.prototype.reposition = function() {
 Path.prototype.onZoomEnd = function() {
   "use strict";
   this.reposition();
-};
-
-Path.prototype.noop = function() {
-  "use strict";
-  return;
 };
 
 Path.animateAll = function() {
